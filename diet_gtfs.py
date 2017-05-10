@@ -12,13 +12,20 @@ import sys
 # transfers.txt depends on stop_id from and to, routes.
 # trips.txt contains shape_id, also route_id to trip_id.
 
+
 def clean_agency_file(*agencies):
     with open('agency.txt', 'r') as f:
         reader = csv.reader(f)
-        next(f)
+        filtered_rows = []
+        filtered_rows.append(next(reader))
+
         for row in reader:
             if row[0] in agencies:
-                print(row)
+                filtered_rows.append(row)
+
+    with open('cleaned/agency.txt', 'w') as f:
+        writer = csv.writer(f)
+        writer.writerows(filtered_rows)
 
 
 def main():
