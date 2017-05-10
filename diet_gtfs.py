@@ -13,17 +13,17 @@ import sys
 # trips.txt contains shape_id, also route_id to trip_id.
 
 
-def clean_agency_file(*agencies):
-    with open('agency.txt', 'r') as f:
+def clean_agency_from_file(index, filename, *agencies):
+    with open(filename, 'r') as f:
         reader = csv.reader(f)
         filtered_rows = []
         filtered_rows.append(next(reader))
 
         for row in reader:
-            if row[0] in agencies:
+            if row[index] in agencies:
                 filtered_rows.append(row)
 
-    with open('cleaned/agency.txt', 'w') as f:
+    with open('cleaned/' + filename, 'w') as f:
         writer = csv.writer(f)
         writer.writerows(filtered_rows)
 
@@ -45,8 +45,8 @@ def clean_routes_file(*agencies):
 
 def main():
     agencies = sys.argv[1:]
-    clean_agency_file(*agencies)
-    clean_routes_file(*agencies)
+    clean_agency_from_file(0, 'agency.txt', *agencies)
+    clean_agency_from_file(1, 'routes.txt', *agencies)
 
 if __name__ == '__main__':
     main()
