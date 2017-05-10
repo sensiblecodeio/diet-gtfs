@@ -2,10 +2,10 @@ import csv
 import sys
 
 # agency.txt done
-# feed_info.txt nothing to change
+# routes.txt done, depends on agency.txt
+# feed_info.txt done, nothing to change
 
 # calendar_dates.txt depends on service_id.
-# routes.txt depends on agency.txt
 # shapes.txt depends on trips.txt
 # stops.txt depends on stop_times.txt
 # stop_times.txt depends on trip_id.
