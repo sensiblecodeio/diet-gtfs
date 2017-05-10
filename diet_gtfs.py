@@ -28,10 +28,25 @@ def clean_agency_file(*agencies):
         writer.writerows(filtered_rows)
 
 
+def clean_routes_file(*agencies):
+    with open('routes.txt', 'r') as f:
+        reader = csv.reader(f)
+        filtered_rows = []
+        filtered_rows.append(next(reader))
+
+        for row in reader:
+            if row[1] in agencies:
+                filtered_rows.append(row)
+
+    with open('cleaned/routes.txt', 'w') as f:
+        writer = csv.writer(f)
+        writer.writerows(filtered_rows)
+
+
 def main():
     agencies = sys.argv[1:]
     clean_agency_file(*agencies)
-
+    clean_routes_file(*agencies)
 
 if __name__ == '__main__':
     main()
