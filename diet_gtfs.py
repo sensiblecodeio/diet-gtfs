@@ -28,25 +28,24 @@ def clean_agency_from_file(index, filename, *agencies):
         writer.writerows(filtered_rows)
 
 
-def clean_routes_file(*agencies):
+def filter_routes(*agencies):
+    route_ids = set()
+
+    # TODO: Could use cleaned routes.txt?
     with open('routes.txt', 'r') as f:
         reader = csv.reader(f)
-        filtered_rows = []
-        filtered_rows.append(next(reader))
-
         for row in reader:
             if row[1] in agencies:
-                filtered_rows.append(row)
+                route_ids.add(row[0])
 
-    with open('cleaned/routes.txt', 'w') as f:
-        writer = csv.writer(f)
-        writer.writerows(filtered_rows)
+    print(route_ids)
 
 
 def main():
     agencies = sys.argv[1:]
     clean_agency_from_file(0, 'agency.txt', *agencies)
     clean_agency_from_file(1, 'routes.txt', *agencies)
+    route_ids = filter_routes(*agencies)
 
 if __name__ == '__main__':
     main()
