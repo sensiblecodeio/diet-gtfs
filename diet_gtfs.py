@@ -1,76 +1,29 @@
 import csv
 import sys
 
-# agency.txt done
-# routes.txt done, depends on agency.txt
-# feed_info.txt done, nothing to change
-# trips.txt contains shape_id, also route_id to trip_id.
-# shapes.txt depends on trips.txt
-# stop_times.txt depends on trip_id.
-# stops.txt depends on stop_times.txt
-# transfers.txt depends on stop_id from and to, routes.
-# calendar_dates.txt depends on service_id.
 
-
-def clean_agency_from_file(index, filename, *agencies):
-    with open(filename, 'r') as f:
-        reader = csv.reader(f)
-        filtered_rows = []
-        filtered_rows.append(next(reader))
-
-        # TODO: consider writing files per row, not storing all first.
-        for row in reader:
-            if row[index] in agencies:
-                filtered_rows.append(row)
-
-    with open('cleaned/' + filename, 'w') as f:
-        writer = csv.writer(f)
-        writer.writerows(filtered_rows)
-
-
-def get_route_ids(*agencies):
+def process_trips(trip_ids):
     route_ids = set()
-
-    # TODO: Could use cleaned routes.txt?
-    with open('routes.txt', 'r') as f:
-        reader = csv.reader(f)
-        for row in reader:
-            if row[1] in agencies:
-                route_ids.add(row[0])
-
-    return route_ids
-
-
-def clean_trips(route_ids):
-    with open('trips.txt', 'r') as f:
-        reader = csv.reader(f)
-        filtered_rows = []
-        filtered_rows.append(next(reader))
-
-        for row in reader:
-            if row[0] in route_ids:
-                filtered_rows.append(row)
-
-    with open('cleaned/trips.txt', 'w') as f:
-        writer = csv.writer(f)
-        writer.writerows(filtered_rows)
-
-
-# TODO: Deduplicate?
-def get_ids_from_trips(route_ids):
-    trip_ids = set()
     shape_ids = set()
     service_ids = set()
 
     with open('trips.txt', 'r') as f:
         reader = csv.reader(f)
+        filtered_rows = []
+        filtered_rows.append(next(reader))
+
         for row in reader:
-            if row[0] in route_ids:
-                trip_ids.add(row[2])
+            if row[2] in trip_ids:
+                filtered_rows.append(row)
+                route_ids.add(row[0])
                 shape_ids.add(row[9])
                 service_ids.add(row[1])
 
-    return trip_ids, shape_ids, service_ids
+    with open('cleaned/trips.txt', 'w') as f:
+        writer = csv.writer(f)
+        writer.writerows(filtered_rows)
+
+    return route_ids, shape_ids, service_ids
 
 
 def clean_shapes(shape_ids):
@@ -88,46 +41,67 @@ def clean_shapes(shape_ids):
         writer.writerows(filtered_rows)
 
 
-def clean_stop_times(trip_ids):
+def process_stop_times(stop_ids):
+    trip_ids = set()
+
     with open('stop_times.txt', 'r') as f:
         reader = csv.reader(f)
         filtered_rows = []
         filtered_rows.append(next(reader))
 
         for row in reader:
-            if row[0] in trip_ids:
+            if row[2] in stop_ids:
                 filtered_rows.append(row)
+                trip_ids.add(row[0])
 
     with open('cleaned/stop_times.txt', 'w') as f:
         writer = csv.writer(f)
         writer.writerows(filtered_rows)
 
+    return trip_ids
 
-def get_stop_ids(trip_ids):
+
+def process_stops(min_lat, max_lat, min_lon, max_lon):
     stop_ids = set()
 
-    with open('stop_times.txt', 'r') as f:
-        reader = csv.reader(f)
-        for row in reader:
-            if row[0] in trip_ids:
-                stop_ids.add(row[2])
-
-    return stop_ids
-
-
-def clean_stops(stop_ids):
     with open('stops.txt', 'r') as f:
         reader = csv.reader(f)
         filtered_rows = []
         filtered_rows.append(next(reader))
 
         for row in reader:
-            if row[0] in stop_ids:
+            stop_lat = row[3]
+            stop_lon = row[4]
+            if (stop_lat >= min_lat and stop_lat <= max_lat
+                    and stop_lon >= min_lon and stop_lon <= max_lon):
                 filtered_rows.append(row)
+                stop_ids.add(row[0])
 
     with open('cleaned/stops.txt', 'w') as f:
         writer = csv.writer(f)
         writer.writerows(filtered_rows)
+
+    return stop_ids
+
+
+def process_routes(route_ids):
+    agency_ids = set()
+
+    with open('routes.txt', 'r') as f:
+        reader = csv.reader(f)
+        filtered_rows = []
+        filtered_rows.append(next(reader))
+
+        for row in reader:
+            if row[0] in route_ids:
+                filtered_rows.append(row)
+                agency_ids.add(row[1])
+
+    with open('cleaned/routes.txt', 'w') as f:
+        writer = csv.writer(f)
+        writer.writerows(filtered_rows)
+
+    return agency_ids
 
 
 def clean_transfers(stop_ids):
@@ -145,18 +119,6 @@ def clean_transfers(stop_ids):
         writer.writerows(filtered_rows)
 
 
-def get_service_ids(trip_ids):
-    service_ids = set()
-
-    with open('stop_times.txt', 'r') as f:
-        reader = csv.reader(f)
-        for row in reader:
-            if row[0] in trip_ids:
-                service_ids.add(row[2])
-
-    return service_ids
-
-
 def clean_calendar(service_ids):
     with open('calendar_dates.txt', 'r') as f:
         reader = csv.reader(f)
@@ -172,22 +134,34 @@ def clean_calendar(service_ids):
         writer.writerows(filtered_rows)
 
 
+def clean_agencies(agency_ids):
+    with open('agency.txt', 'r') as f:
+        reader = csv.reader(f)
+        filtered_rows = []
+        filtered_rows.append(next(reader))
+
+        for row in reader:
+            if row[0] in agency_ids:
+                filtered_rows.append(row)
+
+    with open('cleaned/agency.txt', 'w') as f:
+        writer = csv.writer(f)
+        writer.writerows(filtered_rows)
+
+
 def main():
-    agencies = sys.argv[1:]
-    clean_agency_from_file(0, 'agency.txt', *agencies)
-    clean_agency_from_file(1, 'routes.txt', *agencies)
-    route_ids = get_route_ids(*agencies)
-#    print("Route ids:", route_ids)
-    clean_trips(route_ids)
-    trip_ids, shape_ids, service_ids = get_ids_from_trips(route_ids)
-#    print("Trip ids:", trip_ids)
-#    print("Shape ids:", shape_ids)
-    clean_shapes(shape_ids)
-    clean_stop_times(trip_ids)
-    stop_ids = get_stop_ids(trip_ids)
-    clean_stops(stop_ids)
+    min_lat, max_lat, min_lon, max_lon = sys.argv[1:5]
+
+    # TODO: Deduplicate code.
+    stop_ids = process_stops(min_lat, max_lat, min_lon, max_lon)
+    trip_ids = process_stop_times(stop_ids)
+    route_ids, shape_ids, service_ids = process_trips(trip_ids)
+    agency_ids = process_routes(route_ids)
     clean_transfers(stop_ids)
+    clean_shapes(shape_ids)
     clean_calendar(service_ids)
+    clean_agencies(agency_ids)
+
 
 if __name__ == '__main__':
     main()
