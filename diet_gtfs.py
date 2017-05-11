@@ -9,7 +9,6 @@ import sys
 # stop_times.txt depends on trip_id.
 # stops.txt depends on stop_times.txt
 # transfers.txt depends on stop_id from and to, routes.
-
 # calendar_dates.txt depends on service_id.
 
 
@@ -58,9 +57,10 @@ def clean_trips(route_ids):
 
 
 # TODO: Deduplicate?
-def get_trip_and_shape_ids(route_ids):
+def get_ids_from_trips(route_ids):
     trip_ids = set()
     shape_ids = set()
+    service_ids = set()
 
     with open('trips.txt', 'r') as f:
         reader = csv.reader(f)
@@ -68,8 +68,9 @@ def get_trip_and_shape_ids(route_ids):
             if row[0] in route_ids:
                 trip_ids.add(row[2])
                 shape_ids.add(row[9])
+                service_ids.add(row[1])
 
-    return trip_ids, shape_ids
+    return trip_ids, shape_ids, service_ids
 
 
 def clean_shapes(shape_ids):
@@ -144,11 +145,32 @@ def clean_transfers(stop_ids):
         writer.writerows(filtered_rows)
 
 
-def get_service_ids():
-    pass
+def get_service_ids(trip_ids):
+    service_ids = set()
 
-def clean_calendar():
-    pass
+    with open('stop_times.txt', 'r') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            if row[0] in trip_ids:
+                service_ids.add(row[2])
+
+    return service_ids
+
+
+def clean_calendar(service_ids):
+    with open('calendar_dates.txt', 'r') as f:
+        reader = csv.reader(f)
+        filtered_rows = []
+        filtered_rows.append(next(reader))
+
+        for row in reader:
+            if row[0] in service_ids:
+                filtered_rows.append(row)
+
+    with open('cleaned/calendar_dates.txt', 'w') as f:
+        writer = csv.writer(f)
+        writer.writerows(filtered_rows)
+
 
 def main():
     agencies = sys.argv[1:]
@@ -157,7 +179,7 @@ def main():
     route_ids = get_route_ids(*agencies)
 #    print("Route ids:", route_ids)
     clean_trips(route_ids)
-    trip_ids, shape_ids = get_trip_and_shape_ids(route_ids)
+    trip_ids, shape_ids, service_ids = get_ids_from_trips(route_ids)
 #    print("Trip ids:", trip_ids)
 #    print("Shape ids:", shape_ids)
     clean_shapes(shape_ids)
@@ -165,7 +187,7 @@ def main():
     stop_ids = get_stop_ids(trip_ids)
     clean_stops(stop_ids)
     clean_transfers(stop_ids)
-    # trips.txt: service_id clean_calendar; not quite sure of this.
+    clean_calendar(service_ids)
 
 if __name__ == '__main__':
     main()
