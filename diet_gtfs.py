@@ -1,3 +1,4 @@
+from collections import Counter
 import csv
 import sys
 
@@ -44,6 +45,8 @@ def clean_shapes(shape_ids):
 def process_stop_times(stop_ids):
     trip_ids = set()
 
+    trip_id_count = Counter()
+
     with open('stop_times.txt', 'r') as f:
         reader = csv.reader(f)
         filtered_rows = []
@@ -52,11 +55,21 @@ def process_stop_times(stop_ids):
         for row in reader:
             if row[2] in stop_ids:
                 filtered_rows.append(row)
-                trip_ids.add(row[0])
+                trip_id_count[row[0]] += 1
+
+        for trip_id, count in trip_id_count.items():
+            if count >= 2:
+                trip_ids.add(trip_id)
+
+        cleaned_rows = [filtered_rows[0]]
+
+        for row in filtered_rows[1:]:
+            if row[0] in trip_ids:
+                cleaned_rows.append(row)
 
     with open('cleaned/stop_times.txt', 'w') as f:
         writer = csv.writer(f)
-        writer.writerows(filtered_rows)
+        writer.writerows(cleaned_rows)
 
     return trip_ids
 
