@@ -83,8 +83,8 @@ def process_stops(min_lat, max_lat, min_lon, max_lon):
         filtered_rows.append(next(reader))
 
         for row in reader:
-            stop_lat = row[3]
-            stop_lon = row[4]
+            stop_lat = float(row[3])
+            stop_lon = float(row[4])
             if (stop_lat >= min_lat and stop_lat <= max_lat
                     and stop_lon >= min_lon and stop_lon <= max_lon):
                 filtered_rows.append(row)
@@ -163,7 +163,11 @@ def clean_agencies(agency_ids):
 
 
 def main():
-    min_lat, max_lat, min_lon, max_lon = sys.argv[1:5]
+    min_lat_str, max_lat_str, min_lon_str, max_lon_str = sys.argv[1:5]
+    min_lat = float(min_lat_str)
+    max_lat = float(max_lat_str)
+    min_lon = float(min_lon_str)
+    max_lon = float(max_lon_str)
 
     # TODO: Deduplicate code.
     stop_ids = process_stops(min_lat, max_lat, min_lon, max_lon)
