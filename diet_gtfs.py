@@ -117,14 +117,15 @@ def process_routes(route_ids):
     return agency_ids
 
 
-def clean_transfers(stop_ids):
+def clean_transfers(stop_ids, trip_ids):
     with open('transfers.txt', 'r') as f:
         reader = csv.reader(f)
         filtered_rows = []
         filtered_rows.append(next(reader))
 
         for row in reader:
-            if row[0] in stop_ids and row[1] in stop_ids:
+            if (row[0] in stop_ids and row[1] in stop_ids
+                and row[4] in trip_ids and row[5] in trip_ids):
                 filtered_rows.append(row)
 
     with open('cleaned/transfers.txt', 'w') as f:
@@ -174,7 +175,7 @@ def main():
     trip_ids = process_stop_times(stop_ids)
     route_ids, shape_ids, service_ids = process_trips(trip_ids)
     agency_ids = process_routes(route_ids)
-    clean_transfers(stop_ids)
+    clean_transfers(stop_ids, trip_ids)
     clean_shapes(shape_ids)
     clean_calendar(service_ids)
     clean_agencies(agency_ids)
