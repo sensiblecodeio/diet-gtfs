@@ -2,6 +2,7 @@
 from collections import Counter
 from decimal import Decimal
 import csv
+import os
 import sys
 
 
@@ -165,7 +166,13 @@ def clean_agencies(agency_ids):
         writer.writerows(filtered_rows)
 
 
+def create_output_directory():
+    os.makedirs('cleaned', exist_ok=True)
+
+
 def main():
+    create_output_directory()
+
     min_lat_str, max_lat_str, min_lon_str, max_lon_str = sys.argv[1:5]
     min_lat = Decimal(min_lat_str)
     max_lat = Decimal(max_lat_str)
