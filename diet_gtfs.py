@@ -3,7 +3,6 @@ from collections import Counter
 from decimal import Decimal
 import csv
 import io
-import os
 import sys
 import zipfile
 
@@ -28,9 +27,12 @@ def process_trips(trip_ids):
                     shape_ids.add(row[9])
                     service_ids.add(row[1])
 
-    with open('cleaned/trips.txt', 'w') as f:
-        writer = csv.writer(f)
+        output = io.StringIO()
+        writer = csv.writer(output)
         writer.writerows(filtered_rows)
+
+        with zipfile.ZipFile('cleaned-gtfs.zip', 'a') as zipped:
+            zipped.writestr('trips.txt', output.getvalue())
 
     return route_ids, shape_ids, service_ids
 
@@ -47,9 +49,12 @@ def clean_shapes(shape_ids):
                 if row[0] in shape_ids:
                     filtered_rows.append(row)
 
-    with open('cleaned/shapes.txt', 'w') as f:
-        writer = csv.writer(f)
+        output = io.StringIO()
+        writer = csv.writer(output)
         writer.writerows(filtered_rows)
+
+        with zipfile.ZipFile('cleaned-gtfs.zip', 'a') as zipped:
+            zipped.writestr('shapes.txt', output.getvalue())
 
 
 def process_stop_times(stop_ids):
@@ -79,9 +84,12 @@ def process_stop_times(stop_ids):
                 if row[0] in trip_ids:
                     cleaned_rows.append(row)
 
-    with open('cleaned/stop_times.txt', 'w') as f:
-        writer = csv.writer(f)
+        output = io.StringIO()
+        writer = csv.writer(output)
         writer.writerows(cleaned_rows)
+
+        with zipfile.ZipFile('cleaned-gtfs.zip', 'a') as zipped:
+            zipped.writestr('stop_times.txt', output.getvalue())
 
     return trip_ids
 
@@ -104,9 +112,12 @@ def process_stops(min_lat, max_lat, min_lon, max_lon):
                     filtered_rows.append(row)
                     stop_ids.add(row[0])
 
-    with open('cleaned/stops.txt', 'w') as f:
-        writer = csv.writer(f)
+        output = io.StringIO()
+        writer = csv.writer(output)
         writer.writerows(filtered_rows)
+
+        with zipfile.ZipFile('cleaned-gtfs.zip', 'a') as zipped:
+            zipped.writestr('stops.txt', output.getvalue())
 
     return stop_ids
 
@@ -126,9 +137,12 @@ def process_routes(route_ids):
                     filtered_rows.append(row)
                     agency_ids.add(row[1])
 
-    with open('cleaned/routes.txt', 'w') as f:
-        writer = csv.writer(f)
+        output = io.StringIO()
+        writer = csv.writer(output)
         writer.writerows(filtered_rows)
+
+        with zipfile.ZipFile('cleaned-gtfs.zip', 'a') as zipped:
+            zipped.writestr('routes.txt', output.getvalue())
 
     return agency_ids
 
@@ -143,12 +157,15 @@ def clean_transfers(stop_ids, trip_ids):
 
             for row in reader:
                 if (row[0] in stop_ids and row[1] in stop_ids
-                    and row[4] in trip_ids and row[5] in trip_ids):
+                        and row[4] in trip_ids and row[5] in trip_ids):
                     filtered_rows.append(row)
 
-    with open('cleaned/transfers.txt', 'w') as f:
-        writer = csv.writer(f)
+        output = io.StringIO()
+        writer = csv.writer(output)
         writer.writerows(filtered_rows)
+
+        with zipfile.ZipFile('cleaned-gtfs.zip', 'a') as zipped:
+            zipped.writestr('transfers.txt', output.getvalue())
 
 
 def clean_calendar(service_ids):
@@ -163,9 +180,12 @@ def clean_calendar(service_ids):
                 if row[0] in service_ids:
                     filtered_rows.append(row)
 
-    with open('cleaned/calendar_dates.txt', 'w') as f:
-        writer = csv.writer(f)
+        output = io.StringIO()
+        writer = csv.writer(output)
         writer.writerows(filtered_rows)
+
+        with zipfile.ZipFile('cleaned-gtfs.zip', 'a') as zipped:
+            zipped.writestr('calendar_dates.txt', output.getvalue())
 
 
 def clean_agencies(agency_ids):
@@ -180,17 +200,21 @@ def clean_agencies(agency_ids):
                 if row[0] in agency_ids:
                     filtered_rows.append(row)
 
-    with open('cleaned/agency.txt', 'w') as f:
-        writer = csv.writer(f)
+        output = io.StringIO()
+        writer = csv.writer(output)
         writer.writerows(filtered_rows)
 
+        with zipfile.ZipFile('cleaned-gtfs.zip', 'a') as zipped:
+            zipped.writestr('agency.txt', output.getvalue())
 
-def create_output_directory():
-    os.makedirs('cleaned', exist_ok=True)
+
+def create_output_zip():
+    with zipfile.ZipFile('cleaned-gtfs.zip', 'w') as f:
+        f.close()
 
 
 def main():
-    create_output_directory()
+    create_output_zip()
 
     min_lat_str, max_lat_str, min_lon_str, max_lon_str = sys.argv[1:5]
     min_lat = Decimal(min_lat_str)
