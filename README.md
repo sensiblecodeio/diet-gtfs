@@ -20,11 +20,9 @@ away](http://www.stevenmaude.co.uk/posts/trying-to-trim-down-static-gtfs-feeds).
 
 ## What?
 
-This is a simple Python 3 module that loads in an unzipped GTFS feed,
-and outputs trimmed files that contain only details for a region inside
-a lat/lon "rectangle".
-
-It currently needs an output directory `cleaned` creating.
+This is a simple Python 3 module that loads in a zipped GTFS feed, and
+outputs a GTFS zip that contains trimmed files with only details for a
+region inside a lat/lon "rectangle".
 
 It's using the standard library only, so no external requirements.
 
